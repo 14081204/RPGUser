@@ -111,7 +111,12 @@ class Main extends egret.DisplayObjectContainer {
     }
 
     private textfield:egret.TextField;
-
+    private user : User;
+    private hero : Hero;
+    private sword : Weapon;
+    private lightArmor : Armor;
+    private weaponJewel : Jewel;
+    private armorJewel : Jewel;
     /**
      * 创建游戏场景
      * Create a game scene
@@ -124,12 +129,28 @@ class Main extends egret.DisplayObjectContainer {
         sky.width = stageW;
         sky.height = stageH;
 
-        var attackJewel : Jewel = new Jewel(1,jewelLevel.two, 0.5, 1.1);
-        var weapon : Weapon = new Weapon(10, "Sword", 2);
-        weapon.addJewel(attackJewel);
-        var heroa : Hero = new Hero("CaoCao", 800, 800, 200, 150, 1, 30, 1000, 200);
-        var user : User = new User(100, 1000, 1, 1000, "lala");
-        user.addHero(heroa);
+        this.user = new User(100, 1000, 1, 1000, "Player01");
+        this.hero = new Hero("Hero01", 1000, 1000, 100, 50, 1, 30, 200, 500);
+        this.sword = new Weapon(20, "sword", WeaponsType.sword);
+        this.lightArmor = new Armor(50, "lightArmor", ArmorsType.lightarmor);
+        this.weaponJewel = new Jewel(jewelLevel.one, 20, 50, 15);
+        this.armorJewel = new Jewel(jewelLevel.three, 50, 20, 10);
+         
+        this.sword.addJewel(this.weaponJewel);
+        this.lightArmor.addJewel(this.armorJewel);
+        this.hero.addWeaponsEquipment(this.sword);
+        this.hero.addArmorEquipment(this.lightArmor);
+        this.user.addHero(this.hero);
+
+        console.log("hero attack :" + this.hero.getAttack());
+        console.log("hero defence :" + this.hero.getDefence());
+        console.log("hero speed :" + this.hero.getSpeed());
+        console.log("hero maxHp :" + this.hero.getMaxHp());
+        console.log("weaponJewel fightpower :" + this.weaponJewel.getFightPower());
+        console.log("armorJewel fightpower :" + this.armorJewel.getFightPower());
+        console.log("sword fightpower :" + this.sword.getFightPower());
+        console.log("lightArmor fightpower :" + this.lightArmor.getFightPower());
+        console.log("hero fightpower :" + this.hero.getFightPower());
     }
 
     /**

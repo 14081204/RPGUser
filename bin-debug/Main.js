@@ -107,46 +107,26 @@ var Main = (function (_super) {
         var stageH = this.stage.stageHeight;
         sky.width = stageW;
         sky.height = stageH;
-        var topMask = new egret.Shape();
-        topMask.graphics.beginFill(0x000000, 0.5);
-        topMask.graphics.drawRect(0, 0, stageW, 172);
-        topMask.graphics.endFill();
-        topMask.y = 33;
-        this.addChild(topMask);
-        var icon = this.createBitmapByName("egret_icon_png");
-        this.addChild(icon);
-        icon.x = 26;
-        icon.y = 33;
-        var line = new egret.Shape();
-        line.graphics.lineStyle(2, 0xffffff);
-        line.graphics.moveTo(0, 0);
-        line.graphics.lineTo(0, 117);
-        line.graphics.endFill();
-        line.x = 172;
-        line.y = 61;
-        this.addChild(line);
-        var colorLabel = new egret.TextField();
-        colorLabel.textColor = 0xffffff;
-        colorLabel.width = stageW - 172;
-        colorLabel.textAlign = "center";
-        colorLabel.text = "Hello Egret";
-        colorLabel.size = 24;
-        colorLabel.x = 172;
-        colorLabel.y = 80;
-        this.addChild(colorLabel);
-        var textfield = new egret.TextField();
-        this.addChild(textfield);
-        textfield.alpha = 0;
-        textfield.width = stageW - 172;
-        textfield.textAlign = egret.HorizontalAlign.CENTER;
-        textfield.size = 24;
-        textfield.textColor = 0xffffff;
-        textfield.x = 172;
-        textfield.y = 135;
-        this.textfield = textfield;
-        //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
-        // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.
-        RES.getResAsync("description_json", this.startAnimation, this);
+        this.user = new User(100, 1000, 1, 1000, "Player01");
+        this.hero = new Hero("Hero01", 1000, 1000, 100, 50, 1, 30, 200, 500);
+        this.sword = new Weapon(20, "sword", WeaponsType.sword);
+        this.lightArmor = new Armor(50, "lightArmor", ArmorsType.lightarmor);
+        this.weaponJewel = new Jewel(jewelLevel.one, 20, 50, 15);
+        this.armorJewel = new Jewel(jewelLevel.three, 50, 20, 10);
+        this.sword.addJewel(this.weaponJewel);
+        this.lightArmor.addJewel(this.armorJewel);
+        this.hero.addWeaponsEquipment(this.sword);
+        this.hero.addArmorEquipment(this.lightArmor);
+        this.user.addHero(this.hero);
+        console.log("hero attack :" + this.hero.getAttack());
+        console.log("hero defence :" + this.hero.getDefence());
+        console.log("hero speed :" + this.hero.getSpeed());
+        console.log("hero maxHp :" + this.hero.getMaxHp());
+        console.log("weaponJewel fightpower :" + this.weaponJewel.getFightPower());
+        console.log("armorJewel fightpower :" + this.armorJewel.getFightPower());
+        console.log("sword fightpower :" + this.sword.getFightPower());
+        console.log("lightArmor fightpower :" + this.lightArmor.getFightPower());
+        console.log("hero fightpower :" + this.hero.getFightPower());
     };
     /**
      * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。
@@ -159,34 +139,6 @@ var Main = (function (_super) {
         return result;
     };
     /**
-     * 描述文件加载成功，开始播放动画
-     * Description file loading is successful, start to play the animation
-     */
-    p.startAnimation = function (result) {
-        var self = this;
-        var parser = new egret.HtmlTextParser();
-        var textflowArr = [];
-        for (var i = 0; i < result.length; i++) {
-            textflowArr.push(parser.parser(result[i]));
-        }
-        var textfield = self.textfield;
-        var count = -1;
-        var change = function () {
-            count++;
-            if (count >= textflowArr.length) {
-                count = 0;
-            }
-            var lineArr = textflowArr[count];
-            self.changeDescription(textfield, lineArr);
-            var tw = egret.Tween.get(textfield);
-            tw.to({ "alpha": 1 }, 200);
-            tw.wait(2000);
-            tw.to({ "alpha": 0 }, 200);
-            tw.call(change, self);
-        };
-        change();
-    };
-    /**
      * 切换描述内容
      * Switch to described content
      */
@@ -196,3 +148,4 @@ var Main = (function (_super) {
     return Main;
 }(egret.DisplayObjectContainer));
 egret.registerClass(Main,'Main');
+//# sourceMappingURL=Main.js.map

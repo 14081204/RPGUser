@@ -1,14 +1,25 @@
+var Cache: MethodDecorator = (target : any,propertyKey,descriptor : PropertyDescriptor) => {
+    const method = descriptor.value;
+    descriptor.value = function(){
+        var cacheKey = "__cache" + propertyKey;
+        if(!target[cacheKey]){
+            target[cacheKey] = method.apply(this);
+        }
+            return target[cacheKey];
+    }
+}
+
 enum WeaponsType {
-    katana = 1.5,
-    sword = 1.5,
+    katana = 1,
+    sword = 1,
     halberd = 2,
-    gun = 2.5
+    gun = 3
 }
 
 enum ArmorsType{
-    lightarmor = 1.4,
+    lightarmor = 1,
     armour = 2,
-    heavyarmor = 2.4,
+    heavyarmor = 3,
 }
 
 enum equipmentQuality{
@@ -47,11 +58,12 @@ class User{
         this.userName = userName;
     }
 
+    //@Cache
     get heroesInTeam(){
         return this.heroes.filter(hero => hero.isInTeam);
     }
-
-     get TotalExp(){
+    @Cache
+    getTotalExp(){
          this.totalExp = (this.level + 60) * this.level;
          return this.totalExp;
      }
@@ -60,9 +72,10 @@ class User{
         this.heroes.push(hero);
     }
 
-    get fightPower(){
+    @Cache
+    getFightPower(){
         var result = 0;
-        //
+        this.heroesInTeam.forEach(hero => result += hero.getFightPower());
         return result;
     }
 }
@@ -92,34 +105,53 @@ class Hero{
         this.currentExp = currentExp;
         this.totalExp = totalExp;
     }
-    
-    get MaxHp(){
+
+    @Cache
+    getMaxHp(){
         var result = 0;
-        //
+        this.weaponsEquipment.forEach(weapon => result += weapon.getFightPower() * 0.3);
+        this.armorEquipment.forEach(armor => result += armor.getFightPower() * 0.8);
+        result += this.level * 100;
         return result;
     }
 
-    get Attack(){
+    @Cache
+     getTotalExp(){
+         this.totalExp = (this.level + 60) * this.level;
+         return this.totalExp;
+     }
+
+    @Cache
+    getAttack(){
         var result = 0;
-        //
+        this.weaponsEquipment.forEach(weapon => result += weapon.getAttack() * 0.8);
+        result += this.level * 10;
         return result;
     }
 
-    get Defence(){
+    @Cache
+    getDefence(){
         var result = 0;
-        //
+        this.armorEquipment.forEach(armor => result += armor.getDefence() * 0.8);
+        result += this.level * 10;
         return result;
     }
 
-    get Speed(){
+    @Cache
+    getSpeed(){
         var result = 0;
-        //
+        this.weaponsEquipment.forEach(weapon => result += weapon.getSpeed() * 0.4);
+        this.armorEquipment.forEach(armor => result += armor.getSpeed() * 0.4);
+        result += this.level * 5;
         return result;
     }
 
-    get fightPower(){
+    @Cache
+    getFightPower(){
         var result = 0;
-        //
+        this.weaponsEquipment.forEach(weapon => result += weapon.getFightPower());
+        this.armorEquipment.forEach(armor => result += armor.getFightPower());
+        result += (this.getAttack() * 10 + this.getDefence() * 8 + this.getSpeed() * 6) * this.level;
         return result;
     }
 
@@ -139,17 +171,18 @@ class Equipment{
     equipmentName : string = "";
     jewelsEquipment : Jewel[] = [];
 
-    /*constructor(quality : number, currentExp : number, equipmentName : string){
-        this.quality = quality;
+    constructor(currentExp : number, equipmentName : string){
         this.currentExp = currentExp;
         this.equipmentName = equipmentName;
-    }*/
+    }
 
+    //@Cache
     get attackBoost(){
         return 0;
     }
 
-    get FightPower(){
+    @Cache
+    getFightPower(){
         return 0;
     }
 
@@ -163,41 +196,44 @@ class Weapon extends Equipment{
      isWeapon = true;
      weaponType = 0;
 
-     constructor(currentExp : number, equipmentName : string, weaponType : WeaponType){
-         super();
-         this.currentExp = currentExp;
-         this.equipmentName = equipmentName;
+     constructor(currentExp : number, equipmentName : string, weaponType : WeaponsType){
+         super(currentExp, equipmentName);
          this.weaponType = weaponType;
      }
 
-     get Attack(){
+     @Cache
+     getAttack(){
          var result = 0;
-         //
+         this.jewelsEquipment.forEach(jewel => result += jewel.getFightPower() * 0.8 * jewel.level);
+         result += 10 * this.weaponType; 
          return result;
      }
 
-     get Speed(){
+     @Cache
+     getSpeed(){
          var result = 0;
-         //
+         this.jewelsEquipment.forEach(jewel => result += jewel.getFightPower() * 0.8 * jewel.level / this.weaponType);
          return result;
      }
 
+     //@Cache
      get attackBoost(){
-
         var result = 0;
-        //
+        this.jewelsEquipment.forEach(e => result += e.attackBoost);
         return result;//
-    }
+     }
 
-     get FightPower(){
+     @Cache
+     getFightPower(){
          var result = 0;
-         //
+         this.jewelsEquipment.forEach(jewel => result += jewel.getFightPower());
+         result += this.getAttack() * 10 + this.getSpeed() * 5;
          return result;
      }
 
      public addJewel(jewel : Jewel){
         this.jewelsEquipment.push(jewel);
-    }
+     }
 }
 
 class Armor extends Equipment{
@@ -205,35 +241,31 @@ class Armor extends Equipment{
      isWeapon = false;
      armorType = 0;
 
-     constructor(currentExp : number, equipmentName : string, weaponType : WeaponType){
-         super();
-         this.currentExp = currentExp;
-         this.equipmentName = equipmentName;
-         this.armorType = weaponType;
+     constructor(currentExp : number, equipmentName : string, armorType : ArmorsType){
+         super(currentExp, equipmentName);
+         this.armorType = armorType;
      }
 
-     get Attack(){
+     @Cache
+     getDefence(){
          var result = 0;
-         //
+         this.jewelsEquipment.forEach(jewel => result += jewel.getFightPower() * 0.4 * jewel.level);
+         result += 4 * this.armorType; 
          return result;
      }
 
-     get Speed(){
+     @Cache
+     getSpeed(){
          var result = 0;
-         //
+         this.jewelsEquipment.forEach(jewel => result += jewel.getFightPower() * 0.4 * jewel.level / this.armorType);
          return result;
      }
 
-     get attackBoost(){
-
-        var result = 0;
-        //
-        return result;//
-    }
-
-     get FightPower(){
+    @Cache
+     getFightPower(){
          var result = 0;
-         //
+         this.jewelsEquipment.forEach(jewel => result += jewel.getFightPower());
+         result += this.getDefence() * 10 + this.getSpeed() * 5;
          return result;
      }
 
@@ -243,22 +275,39 @@ class Armor extends Equipment{
 }
 
 class Jewel{
-    quality  = 0;
+    //quality  = 0;
     level : jewelLevel;
-    hpBoost = 0;
+    defencePromote = 0;
+    speedPromote = 0
     attackBoost = 0;
     //promotionType = 0;
 
-    constructor(quality : number, level : jewelLevel, hpBoost : number, attackBoost : number){
+    constructor(level : jewelLevel, defencePromote : number, attackBoost : number, speedPromote : number){
         this.level = level;
-        this.hpBoost = hpBoost;
+        this.defencePromote = defencePromote;
+        this.speedPromote = speedPromote;
         this.attackBoost = attackBoost;
     }
 
-    get FightPower(){
+    get DefencePromote(){
+
+        return this.defencePromote * this.level;
+    }
+
+    get SpeedPromote(){
+
+        return this.speedPromote * this.level;
+    }
+
+    get AttackBoost(){
+
+        return this.attackBoost * this.level;
+    }
+
+    @Cache
+    getFightPower(){
         var result = 0;
-        //
+        result = this.DefencePromote * 3 + this.AttackBoost * 5 + this.SpeedPromote * 2;
         return result;
     }
 }
-
